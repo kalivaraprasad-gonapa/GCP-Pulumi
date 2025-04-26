@@ -18,12 +18,18 @@ export class VPC {
 
     /**
      * Constructor to create a VPC with multiple subnets.
-     * 
+     *
      * @param name The name of the VPC.
      * @param region The region where the VPC will be created.
      * @param subnetsConfig Array of subnet configurations with CIDR range and name.
      */
-    constructor(name: string, region: string, subnetsConfig: { cidrRange: string; name: string }[], sourceRanges: string[], sshSourceRanges: string[]) {
+    constructor(
+        name: string,
+        region: string,
+        subnetsConfig: { cidrRange: string; name: string }[],
+        sourceRanges: string[],
+        sshSourceRanges: string[]
+    ) {
         // Create the VPC network
         this.vpc = new gcp.compute.Network(name, {
             autoCreateSubnetworks: false, // Disable auto subnet creation for custom subnets
@@ -47,11 +53,14 @@ export class VPC {
 
     /**
      * Creates firewall rules based on best practices for SOC2 compliance.
-     * 
+     *
      * - Restricts access to the VPC based on IP ranges and specific ports.
      * - Logs all network traffic for auditing purposes.
      */
-    private createFirewallRules(sourceRanges: string[], sshSourceRanges: string[]) {
+    private createFirewallRules(
+        sourceRanges: string[],
+        sshSourceRanges: string[]
+    ) {
         // Allow internal traffic within the VPC (for communication between VMs and services)
         new gcp.compute.Firewall("allow-internal", {
             network: this.vpc.id,
@@ -84,11 +93,11 @@ export class VPC {
 
     /**
      * Export VPC and Subnet details.
-     * 
+     *
      * @returns The VPC and Subnet details, including the IDs and names.
      */
     getVPCDetails() {
-        const subnetDetails = this.subnets.map(subnet => ({
+        const subnetDetails = this.subnets.map((subnet) => ({
             subnetName: subnet.name,
             subnetId: subnet.id,
         }));
