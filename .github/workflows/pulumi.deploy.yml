@@ -13,6 +13,7 @@ env:
   STACK_NAME: dev
   REGION: us-central1
   PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
+  VPC_SSH_SOURCE_RANGE: ${{ secrets.MY_HOME_IP }}/32
 
 
 jobs:
