@@ -1,0 +1,8 @@
+encryptionsalt: v1:NMg0OaSNdeM=:v1:Z9DFLasROMOgIjb7:peBP7iqalZk4XjrA2VxlE01qXK/0pg==
+config:
+  gcp:project:
+    secure: v1:a8qRkPwyBTHjBIvu:eQlUQpQ0tM6phhqJPC4FIlW5o9sgoFRI/7zDJtAgIPpBPAmLn21LCQ==
+  gcp:region:
+    secure: v1:MjL4TGqjTVjNu8UA:eqSqlTAHxOwn0gAGMSHrI5NdxD7iQMRDzGvy
+  k8s:adminPassword:
+    secure: v1:ZHQ1vcZrilZsTetx:THvunSZZvbdIiU6WwME0ASl3x0JJzuetTOEmzH8hxykcAw==
