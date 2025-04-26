@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      - feat/*
+      - feature/*
   pull_request:
     branches:
       - main
@@ -13,6 +15,7 @@ env:
   STACK_NAME: dev
   REGION: us-central1
   PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
+  VPC_SSH_SOURCE_RANGE: ${{ secrets.MY_HOME_IP }}/32
 
 
 jobs:
@@ -57,6 +60,6 @@ jobs:
       - name: Pulumi Preview
         run: pulumi preview
 
-      - name: Pulumi Deploy (only on push to main)
-        if: github.event_name == 'push'
+      - name: Pulumi Deploy (only on push to main) # push and branch to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: pulumi up --yes
