@@ -1,0 +1,61 @@
+name: Pulumi Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  PROJECT_NAME: gcp-pulumi
+  STACK_NAME: dev
+  REGION: us-central1
+
+jobs:
+  deploy:
+    name: Pulumi Deploy to GCP
+    environment: development
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install NPM dependencies
+        run: npm install
+
+      - name: Install Pulumi CLI
+        uses: pulumi/setup-pulumi@v2
+        with:
+          pulumi-version: ^3.0.0
+
+      - name: Configure GCP Credentials
+        run: |
+          echo "${{ secrets.GCP_CREDENTIALS }}" > gcp-key.json
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
+
+      - name: Pulumi Login
+        run: pulumi login --cloud-url gs://${{ secrets.PULUMI_BACKEND_BUCKET }}
+
+      - name: Pulumi Stack Init
+        run: pulumi stack select ${{ env.STACK_NAME }} || pulumi stack init ${{ env.STACK_NAME }}
+
+      - name: Set Pulumi Config
+        run: |
+          pulumi config set gcp:project ${{ secrets.GCP_PROJECT_ID }} --secret
+          pulumi config set gcp:region ${{ env.REGION }}
+
+      - name: Pulumi Preview
+        run: pulumi preview
+
+      - name: Pulumi Deploy (only on push to main)
+        if: github.event_name == 'push'
+        run: pulumi up --yes
