@@ -12,7 +12,7 @@ env:
   PROJECT_NAME: gcp-pulumi
   STACK_NAME: dev
   REGION: us-central1
-  GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
+
 
 jobs:
   deploy:
@@ -37,8 +37,10 @@ jobs:
         with:
           pulumi-version: ^3.0.0
 
-      - name: Configure GCP Credentials
-        run: echo "${{ secrets.GCP_CREDENTIALS }}" > gcp-key.json
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+            credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
       - name: Pulumi Login
         run: pulumi login --cloud-url gs://${{ secrets.PULUMI_BACKEND_BUCKET }}
