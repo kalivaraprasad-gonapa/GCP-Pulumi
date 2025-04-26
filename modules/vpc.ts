@@ -13,99 +13,99 @@ import * as gcp from "@pulumi/gcp";
  * - **Private Google Access**: Enable private access to Google services for security.
  */
 export class VPC {
-    vpc: gcp.compute.Network;
-    subnets: gcp.compute.Subnetwork[] = [];
+  vpc: gcp.compute.Network;
+  subnets: gcp.compute.Subnetwork[] = [];
 
-    /**
-     * Constructor to create a VPC with multiple subnets.
-     *
-     * @param name The name of the VPC.
-     * @param region The region where the VPC will be created.
-     * @param subnetsConfig Array of subnet configurations with CIDR range and name.
-     */
-    constructor(
-        name: string,
-        region: string,
-        subnetsConfig: { cidrRange: string; name: string }[],
-        sourceRanges: string[],
-        sshSourceRanges: string[]
-    ) {
-        // Create the VPC network
-        this.vpc = new gcp.compute.Network(name, {
-            autoCreateSubnetworks: false, // Disable auto subnet creation for custom subnets
-        });
+  /**
+   * Constructor to create a VPC with multiple subnets.
+   *
+   * @param name The name of the VPC.
+   * @param region The region where the VPC will be created.
+   * @param subnetsConfig Array of subnet configurations with CIDR range and name.
+   */
+  constructor(
+    name: string,
+    region: string,
+    subnetsConfig: { cidrRange: string; name: string }[],
+    sourceRanges: string[],
+    sshSourceRanges: string[]
+  ) {
+    // Create the VPC network
+    this.vpc = new gcp.compute.Network(name, {
+      autoCreateSubnetworks: false, // Disable auto subnet creation for custom subnets
+    });
 
-        // Create multiple subnets for the VPC
-        subnetsConfig.forEach((subnetConfig) => {
-            const subnet = new gcp.compute.Subnetwork(subnetConfig.name, {
-                ipCidrRange: subnetConfig.cidrRange, // Define the CIDR range for the subnet
-                region: region, // Specify the region
-                network: this.vpc.id, // Associate the subnet with the VPC
-                privateIpGoogleAccess: true, // Enable private access to Google APIs
-            });
+    // Create multiple subnets for the VPC
+    subnetsConfig.forEach((subnetConfig) => {
+      const subnet = new gcp.compute.Subnetwork(subnetConfig.name, {
+        ipCidrRange: subnetConfig.cidrRange, // Define the CIDR range for the subnet
+        region: region, // Specify the region
+        network: this.vpc.id, // Associate the subnet with the VPC
+        privateIpGoogleAccess: true, // Enable private access to Google APIs
+      });
 
-            this.subnets.push(subnet);
-        });
+      this.subnets.push(subnet);
+    });
 
-        // Implement basic firewall rules for SOC2 compliance
-        this.createFirewallRules(sourceRanges, sshSourceRanges);
-    }
+    // Implement basic firewall rules for SOC2 compliance
+    this.createFirewallRules(sourceRanges, sshSourceRanges);
+  }
 
-    /**
-     * Creates firewall rules based on best practices for SOC2 compliance.
-     *
-     * - Restricts access to the VPC based on IP ranges and specific ports.
-     * - Logs all network traffic for auditing purposes.
-     */
-    private createFirewallRules(
-        sourceRanges: string[],
-        sshSourceRanges: string[]
-    ) {
-        // Allow internal traffic within the VPC (for communication between VMs and services)
-        new gcp.compute.Firewall("allow-internal", {
-            network: this.vpc.id,
-            allows: [
-                { protocol: "tcp", ports: ["0-65535"] },
-                { protocol: "udp", ports: ["0-65535"] },
-                { protocol: "icmp" },
-            ],
-            sourceRanges: sourceRanges, // Allow internal IP ranges
-            targetTags: ["internal"],
-            direction: "INGRESS",
-            logConfig: {
-                metadata: "INCLUDE_ALL_METADATA", // Include all metadata for logging
-            },
-        });
+  /**
+   * Creates firewall rules based on best practices for SOC2 compliance.
+   *
+   * - Restricts access to the VPC based on IP ranges and specific ports.
+   * - Logs all network traffic for auditing purposes.
+   */
+  private createFirewallRules(
+    sourceRanges: string[],
+    sshSourceRanges: string[]
+  ) {
+    // Allow internal traffic within the VPC (for communication between VMs and services)
+    new gcp.compute.Firewall("allow-internal", {
+      network: this.vpc.id,
+      allows: [
+        { protocol: "tcp", ports: ["0-65535"] },
+        { protocol: "udp", ports: ["0-65535"] },
+        { protocol: "icmp" },
+      ],
+      sourceRanges: sourceRanges, // Allow internal IP ranges
+      targetTags: ["internal"],
+      direction: "INGRESS",
+      logConfig: {
+        metadata: "INCLUDE_ALL_METADATA", // Include all metadata for logging
+      },
+    });
 
-        // Allow access for SSH (port 22) from trusted IP ranges (example: corporate IP)
-        new gcp.compute.Firewall("allow-ssh", {
-            network: this.vpc.id,
-            allows: [{ protocol: "tcp", ports: ["22"] }],
-            sourceRanges: sshSourceRanges, // Specify the trusted IP ranges
-            direction: "INGRESS",
-            logConfig: {
-                metadata: "INCLUDE_ALL_METADATA", // Include all metadata for logging
-            },
-        });
+    // Allow access for SSH (port 22) from trusted IP ranges (example: corporate IP)
+    new gcp.compute.Firewall("allow-ssh", {
+      network: this.vpc.id,
+      allows: [{ protocol: "tcp", ports: ["22"] }],
+      sourceRanges: sshSourceRanges, // Specify the trusted IP ranges
+      direction: "INGRESS",
+      logConfig: {
+        metadata: "INCLUDE_ALL_METADATA", // Include all metadata for logging
+      },
+    });
 
-        // Additional firewall rules can be added based on your security requirements
-    }
+    // Additional firewall rules can be added based on your security requirements
+  }
 
-    /**
-     * Export VPC and Subnet details.
-     *
-     * @returns The VPC and Subnet details, including the IDs and names.
-     */
-    getVPCDetails() {
-        const subnetDetails = this.subnets.map((subnet) => ({
-            subnetName: subnet.name,
-            subnetId: subnet.id,
-        }));
+  /**
+   * Export VPC and Subnet details.
+   *
+   * @returns The VPC and Subnet details, including the IDs and names.
+   */
+  getVPCDetails() {
+    const subnetDetails = this.subnets.map((subnet) => ({
+      subnetName: subnet.name,
+      subnetId: subnet.id,
+    }));
 
-        return {
-            vpcName: this.vpc.name,
-            vpcId: this.vpc.id,
-            subnets: subnetDetails,
-        };
-    }
+    return {
+      vpcName: this.vpc.name,
+      vpcId: this.vpc.id,
+      subnets: subnetDetails,
+    };
+  }
 }
