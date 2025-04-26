@@ -12,6 +12,7 @@ env:
   PROJECT_NAME: gcp-pulumi
   STACK_NAME: dev
   REGION: us-central1
+  PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
 
 
 jobs:
