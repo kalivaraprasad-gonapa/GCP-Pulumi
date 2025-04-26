@@ -23,7 +23,7 @@ export class VPC {
      * @param region The region where the VPC will be created.
      * @param subnetsConfig Array of subnet configurations with CIDR range and name.
      */
-    constructor(name: string, region: string, subnetsConfig: { cidrRange: string; name: string }[], sourceRanges: string[]) {
+    constructor(name: string, region: string, subnetsConfig: { cidrRange: string; name: string }[], sourceRanges: string[], sshSourceRanges: string[]) {
         // Create the VPC network
         this.vpc = new gcp.compute.Network(name, {
             autoCreateSubnetworks: false, // Disable auto subnet creation for custom subnets
@@ -42,7 +42,7 @@ export class VPC {
         });
 
         // Implement basic firewall rules for SOC2 compliance
-        this.createFirewallRules(sourceRanges);
+        this.createFirewallRules(sourceRanges, sshSourceRanges);
     }
 
     /**
@@ -51,7 +51,7 @@ export class VPC {
      * - Restricts access to the VPC based on IP ranges and specific ports.
      * - Logs all network traffic for auditing purposes.
      */
-    private createFirewallRules(sourceRanges: string[]) {
+    private createFirewallRules(sourceRanges: string[], sshSourceRanges: string[]) {
         // Allow internal traffic within the VPC (for communication between VMs and services)
         new gcp.compute.Firewall("allow-internal", {
             network: this.vpc.id,
@@ -72,7 +72,7 @@ export class VPC {
         new gcp.compute.Firewall("allow-ssh", {
             network: this.vpc.id,
             allows: [{ protocol: "tcp", ports: ["22"] }],
-            sourceRanges: ["YOUR_TRUSTED_IP_RANGE"], // Specify the trusted IP ranges
+            sourceRanges: sshSourceRanges, // Specify the trusted IP ranges
             direction: "INGRESS",
             logConfig: {
                 metadata: "INCLUDE_ALL_METADATA", // Include all metadata for logging

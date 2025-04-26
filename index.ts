@@ -9,9 +9,10 @@ const subnetsConfigIndiaVPC = [
 
 // Use environment variables for source ranges
 const sourceRangesIndiaVPC = [process.env.VPC_SOURCE_RANGE || "10.0.0.0/8"];
+const sshSourceRangesIndiaVPC = [process.env.VPC_SSH_SOURCE_RANGE || "0.0.0.0/0"];
 
 // Create VPC instances
-const indiaVPC = new VPC("india-vpc", process.env.GCP_REGION || "us-central1", subnetsConfigIndiaVPC, sourceRangesIndiaVPC);
+const indiaVPC = new VPC("india-vpc", process.env.GCP_REGION || "us-central1", subnetsConfigIndiaVPC, sourceRangesIndiaVPC, sshSourceRangesIndiaVPC);
 
 // Export the VPC details
 export const indiaVpcDetails = indiaVPC.getVPCDetails();
